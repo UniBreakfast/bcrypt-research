@@ -21,6 +21,9 @@
     else timestamp = process.hrtime().join('.')*1000
     return this==global? null : this.valueOf()
   }
+
+  Object.defineProperty(global, 'now',
+    { get: ()=> String(new Date).match(/\d+:\d+:\d+/)[0] } )
 }
 
 const
@@ -36,20 +39,18 @@ users = [
     hash: '$2a$04$L/lHMuQayzOoatMxyPwdAeoX57FTjEE3cF3/c8hp3eswn0fdmpt2i' }
 ],
 
-check =(login, pass)=> new Promise((resolve, reject) => {
-  if (check.locks[login]) return reject('wait')
-  check.locks[login] = true
-  const user = users.find(user => user.login == login)
-  if (!user) return c('no such user')
-  const now = Date.now(), { last=now, take=0, hash } = user
-  user.last = now
-  user.take = now-last > 3e5? 1 : Math.min(take+1, 9)
-  const wait = Math.max(0, check.secs[user.take]*1e3 - (now-last))
-  setTimeout(()=> compare(pass, hash).then(resolve)
-    .then(()=> delete check.locks[login]), wait)
-})
-check.secs = [0, 0, 0, 3, 7, 15, 30, 60, 120, 240]
-check.locks = {}
+// sync or async functions to find user and update his state
+find = login => users.find(user => user.login == login),
+setGuess =(user, guess)=> user.guess = guess,
+setLast =(user, timestamp)=> user.last = timestamp,
+
+check = require('./check.js')(find, setGuess, setLast)
+
+// try in the console:
+// check('Alex', 'jeronimo').then(r=>r.c()).catch(c)
+// and
+// check('Bob', 'wrongpass').then(r=>r.c()).catch(c)
+// multiple times - you'll see the delays, increasing with more guesses
 
 setInterval(t, 1e6)
 
