@@ -1,9 +1,12 @@
 {
   var c = console.log, { assign } = Object
 
+  Object.defineProperty(global, 'now',
+    { get: ()=> String(new Date).match(/\d+:\d+:\d+/)[0] } )
+
   let lastTime
   Object.prototype.c = function(label) {
-    const time = new Date().toLocaleTimeString('en', {hour12: false})
+    const time = now
     console.log(time == lastTime? '': lastTime = time,
       typeof label=='string'? label+':' : typeof label=='number'? label+'.' :'',
         this.valueOf())
@@ -21,9 +24,6 @@
     else timestamp = process.hrtime().join('.')*1000
     return this==global? null : this.valueOf()
   }
-
-  Object.defineProperty(global, 'now',
-    { get: ()=> String(new Date).match(/\d+:\d+:\d+/)[0] } )
 }
 
 const
