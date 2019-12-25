@@ -30,7 +30,7 @@ const
 
 { hash, compare } = require('bcryptjs'),
 
-hashit = str => hash(str, 4),
+hashit = async str => await hash(str, 4),
 
 users = [
   { login: 'Alex', pass: 'jeronimo',
